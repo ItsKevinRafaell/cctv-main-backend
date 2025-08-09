@@ -9,7 +9,13 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type User struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
 type AnomalyReport struct {
 	ID          int64     `json:"id"`
@@ -59,7 +65,6 @@ func getAnomaliesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Query untuk mengambil semua data dari tabel
 	rows, err := db.Query("SELECT id, camera_id, anomaly_type, confidence, reported_at FROM anomaly_reports ORDER BY reported_at DESC")
 	if err != nil {
 		log.Printf("❌ Gagal mengambil data dari database: %v", err)
@@ -73,13 +78,43 @@ func getAnomaliesHandler(w http.ResponseWriter, r *http.Request) {
 		var report AnomalyReport
 		if err := rows.Scan(&report.ID, &report.CameraID, &report.AnomalyType, &report.Confidence, &report.ReportedAt); err != nil {
 			log.Printf("❌ Gagal memindai baris data: %v", err)
-			continue // Lanjut ke baris berikutnya jika ada error
+			continue
 		}
 		reports = append(reports, report)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(reports)
+}
+
+func registerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Metode tidak diizinkan", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Request body tidak valid", http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Gagal memproses password", http.StatusInternalServerError)
+		return
+	}
+
+	query := `INSERT INTO users (email, password_hash) VALUES ($1, $2)`
+	_, err = db.Exec(query, user.Email, string(hashedPassword))
+	if err != nil {
+		log.Printf("Gagal menyimpan user: %v", err)
+		http.Error(w, "Email sudah terdaftar", http.StatusConflict)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("User berhasil didaftarkan."))
 }
 
 func main() {
@@ -110,7 +145,21 @@ func main() {
 	}
 	log.Println("   > Tabel 'anomaly_reports' siap digunakan.")
 
+	createUserTableQuery := `
+	CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		email VARCHAR(255) UNIQUE NOT NULL,
+		password_hash VARCHAR(255) NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+	);`
+	if _, err := db.Exec(createUserTableQuery); err != nil {
+		log.Fatal("Gagal membuat tabel users:", err)
+	}
+	log.Println("   > Tabel 'users' siap digunakan.")
+
 	http.HandleFunc("/api/report-anomaly", reportAnomalyHandler)
+	http.HandleFunc("/api/anomalies", getAnomaliesHandler)
+	http.HandleFunc("/api/register", registerHandler)
 
 	port := "8080"
 	fmt.Printf("Server backend Go berjalan di http://localhost:%s\n", port)
