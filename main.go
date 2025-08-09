@@ -12,9 +12,11 @@ import (
 )
 
 type AnomalyReport struct {
-	CameraID    string  `json:"camera_id"`
-	AnomalyType string  `json:"anomaly_type"`
-	Confidence  float64 `json:"confidence"`
+	ID          int64     `json:"id"`
+	CameraID    string    `json:"camera_id"`
+	AnomalyType string    `json:"anomaly_type"`
+	Confidence  float64   `json:"confidence"`
+	ReportedAt  time.Time `json:"reported_at"`
 }
 
 var db *sql.DB
@@ -49,6 +51,35 @@ func reportAnomalyHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Laporan berhasil diterima dan disimpan."))
+}
+
+func getAnomaliesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Metode tidak diizinkan", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Query untuk mengambil semua data dari tabel
+	rows, err := db.Query("SELECT id, camera_id, anomaly_type, confidence, reported_at FROM anomaly_reports ORDER BY reported_at DESC")
+	if err != nil {
+		log.Printf("❌ Gagal mengambil data dari database: %v", err)
+		http.Error(w, "Gagal mengambil data", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	reports := []AnomalyReport{}
+	for rows.Next() {
+		var report AnomalyReport
+		if err := rows.Scan(&report.ID, &report.CameraID, &report.AnomalyType, &report.Confidence, &report.ReportedAt); err != nil {
+			log.Printf("❌ Gagal memindai baris data: %v", err)
+			continue // Lanjut ke baris berikutnya jika ada error
+		}
+		reports = append(reports, report)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reports)
 }
 
 func main() {
