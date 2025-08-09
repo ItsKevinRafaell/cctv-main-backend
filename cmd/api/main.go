@@ -27,7 +27,7 @@ func main() {
 	http.HandleFunc("/api/register", userHandler.Register)
 	http.HandleFunc("/api/login", userHandler.Login)
 	http.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
-	http.HandleFunc("/api/anomalies", anomalyHandler.GetAllReports)
+	http.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
 
 	port := "8080"
 	fmt.Printf("Server berjalan di http://localhost:%s\n", port)
