@@ -3,9 +3,13 @@ package user
 import (
 	"cctv-main-backend/internal/domain"
 	"errors"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var jwtSecret = []byte("kunci-rahasia-yang-sangat-aman-dan-panjang")
 
 type Service interface {
 	Register(user *domain.User) error
@@ -31,10 +35,20 @@ func (s *service) Login(input *domain.User) (string, error) {
 		return "", errors.New("email atau password salah")
 	}
 
-	// 3. Jika berhasil, kita akan buat token di sini (untuk sekarang, kita kembalikan string sukses)
-	// TODO: Implementasi pembuatan JWT Token
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"exp":     time.Now().Add(time.Hour * 72).Unix(),
+	}
 
-	return "login_berhasil_token_akan_dibuat_di_sini", nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 func (s *service) Register(user *domain.User) error {
