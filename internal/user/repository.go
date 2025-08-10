@@ -20,9 +20,9 @@ func NewRepository(db *sql.DB) Repository {
 
 func (r *repository) GetUserByEmail(email string) (*domain.User, error) {
 	var user domain.User
-	query := `SELECT id, email, password_hash FROM users WHERE email=$1`
+	query := `SELECT id, email, password_hash, company_id, role FROM users WHERE email=$1`
 
-	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.PasswordHash)
+	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CompanyID, &user.Role)
 	if err != nil {
 		return nil, err
 	}

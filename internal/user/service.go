@@ -36,13 +36,14 @@ func (s *service) Login(input *domain.User) (string, error) {
 	}
 
 	claims := jwt.MapClaims{
-		"user_id": user.ID,
-		"email":   user.Email,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(),
+		"user_id":    user.ID,
+		"email":      user.Email,
+		"company_id": user.CompanyID,
+		"role":       user.Role,
+		"exp":        time.Now().Add(time.Hour * 72).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		return "", err
