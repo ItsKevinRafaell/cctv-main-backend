@@ -2,8 +2,13 @@ package user
 
 import (
 	"cctv-main-backend/internal/domain"
+	"cctv-main-backend/pkg/auth"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Handler struct {
@@ -53,9 +58,64 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User berhasil didaftarkan untuk perusahaan terkait."))
 }
 
-// curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODQ4MSwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.gXS1PKtuUmQ0nFC9NQ_OqJKC0rdV81Ar5EB3w9W-E3E" http://localhost:8080/api/anomalies
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODI1NCwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.9hLEUQUpvSlboN_chI49Ke0Pwtfrh5QYSO-pJhEoRW8
+func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	claims, _ := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	companyID, _ := claims["company_id"].(float64)
 
-// curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODY4MCwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.RdHspdIuLg-XKsxHFRDZ18q1UJrr-VBMDNMtRb0XbpQ" http://localhost:8080/api/anomalies
+	users, err := h.service.FindUsersByCompany(int64(companyID))
+	if err != nil {
+		http.Error(w, "Gagal mengambil data pengguna", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
+}
 
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjozLCJlbWFpbCI6ImRpbmFAbWFrbXVyLmNvbSIsImV4cCI6MTc1NTA2ODI3OSwicm9sZSI6InVzZXIiLCJ1c2VyX2lkIjo0fQ.B63X6r8KX9dnDiNDrLpUr7TbSGf4mvyNR6PyBj0WkN0
+func (h *Handler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	claims, _ := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	companyID, _ := claims["company_id"].(float64)
+	role, _ := claims["role"].(string)
+
+	if role != "company_admin" {
+		http.Error(w, "Anda tidak punya izin untuk melakukan aksi ini", http.StatusForbidden)
+		return
+	}
+
+	parts := strings.Split(r.URL.Path, "/")
+	userID, _ := strconv.ParseInt(parts[len(parts)-1], 10, 64)
+
+	var reqBody map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		http.Error(w, "Request body tidak valid", http.StatusBadRequest)
+		return
+	}
+	newRole := reqBody["role"]
+
+	if err := h.service.UpdateRole(userID, int64(companyID), newRole); err != nil {
+		http.Error(w, "Pengguna tidak ditemukan atau bukan bagian dari perusahaan Anda", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Peran pengguna berhasil diperbarui."))
+}
+
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	claims, _ := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	companyID, _ := claims["company_id"].(float64)
+	role, _ := claims["role"].(string)
+
+	if role != "company_admin" {
+		http.Error(w, "Anda tidak punya izin untuk melakukan aksi ini", http.StatusForbidden)
+		return
+	}
+
+	parts := strings.Split(r.URL.Path, "/")
+	userID, _ := strconv.ParseInt(parts[len(parts)-1], 10, 64)
+
+	if err := h.service.Delete(userID, int64(companyID)); err != nil {
+		http.Error(w, "Pengguna tidak ditemukan atau bukan bagian dari perusahaan Anda", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Pengguna berhasil dihapus."))
+}

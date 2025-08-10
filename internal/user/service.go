@@ -14,6 +14,9 @@ var jwtSecret = []byte("kunci-rahasia-yang-sangat-aman-dan-panjang")
 type Service interface {
 	Register(user *domain.User) error
 	Login(input *domain.User) (string, error)
+	FindUsersByCompany(companyID int64) ([]domain.User, error)
+	UpdateRole(userID, companyID int64, role string) error
+	Delete(userID, companyID int64) error
 }
 
 type service struct {
@@ -59,4 +62,16 @@ func (s *service) Register(user *domain.User) error {
 	}
 	user.PasswordHash = string(hashedPassword)
 	return s.repo.CreateUser(user)
+}
+
+func (s *service) FindUsersByCompany(companyID int64) ([]domain.User, error) {
+	return s.repo.GetUsersByCompanyID(companyID)
+}
+
+func (s *service) UpdateRole(userID, companyID int64, role string) error {
+	return s.repo.UpdateUserRole(userID, companyID, role)
+}
+
+func (s *service) Delete(userID, companyID int64) error {
+	return s.repo.DeleteUser(userID, companyID)
 }
