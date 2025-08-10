@@ -7,6 +7,7 @@ import (
 
 type Repository interface {
 	CreateCamera(camera *domain.Camera) (int64, error)
+	GetCamerasByCompanyID(companyID int64) ([]domain.Camera, error)
 }
 
 type repository struct {
@@ -25,4 +26,23 @@ func (r *repository) CreateCamera(camera *domain.Camera) (int64, error) {
 		return 0, err
 	}
 	return cameraID, nil
+}
+
+func (r *repository) GetCamerasByCompanyID(companyID int64) ([]domain.Camera, error) {
+	query := `SELECT id, name, location, company_id, created_at FROM cameras WHERE company_id = $1 ORDER BY created_at DESC`
+	rows, err := r.db.Query(query, companyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cameras []domain.Camera
+	for rows.Next() {
+		var cam domain.Camera
+		if err := rows.Scan(&cam.ID, &cam.Name, &cam.Location, &cam.CompanyID, &cam.CreatedAt); err != nil {
+			return nil, err
+		}
+		cameras = append(cameras, cam)
+	}
+	return cameras, nil
 }

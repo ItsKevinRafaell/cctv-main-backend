@@ -1,3 +1,5 @@
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODQ4MSwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.gXS1PKtuUmQ0nFC9NQ_OqJKC0rdV81Ar5EB3w9W-E3E
 
-curl -X POST -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODQ4MSwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.gXS1PKtuUmQ0nFC9NQ_OqJKC0rdV81Ar5EB3w9W-E3E" -H "Content-Type: application/json" -d "{\"name\":\"Kamera Lobi Utama\",\"location\":\"Lantai 1\"}" http://localhost:8080/api/cameras
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODQ4MSwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.gXS1PKtuUmQ0nFC9NQ_OqJKC0rdV81Ar5EB3w9W-E3E" http://localhost:8080/api/cameras
+
+feat: add endpoint to get list of cameras by company

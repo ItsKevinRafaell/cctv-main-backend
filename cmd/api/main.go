@@ -16,6 +16,8 @@ func main() {
 	database.Migrate(db)
 	defer db.Close()
 
+	mux := http.NewServeMux()
+
 	anomalyRepo := anomaly.NewRepository(db)
 	anomalyService := anomaly.NewService(anomalyRepo)
 	anomalyHandler := anomaly.NewHandler(anomalyService)
@@ -32,19 +34,28 @@ func main() {
 	cameraService := camera.NewService(cameraRepo)
 	cameraHandler := camera.NewHandler(cameraService)
 
-	http.HandleFunc("/api/register", userHandler.Register)
-	http.HandleFunc("/api/login", userHandler.Login)
+	mux.HandleFunc("/api/register", userHandler.Register)
+	mux.HandleFunc("/api/login", userHandler.Login)
 
-	http.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
-	http.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
+	mux.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
+	mux.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
 
-	http.HandleFunc("/api/cameras", authMiddleware(cameraHandler.CreateCamera))
+	mux.HandleFunc("/api/companies", companyHandler.CreateCompany)
 
-	http.HandleFunc("/api/companies", companyHandler.CreateCompany)
+	mux.HandleFunc("/api/cameras", authMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			cameraHandler.CreateCamera(w, r)
+		case http.MethodGet:
+			cameraHandler.GetCameras(w, r)
+		default:
+			http.Error(w, "Metode tidak diizinkan", http.StatusMethodNotAllowed)
+		}
+	}))
 
 	port := "8080"
 	fmt.Printf("Server berjalan di http://localhost:%s\n", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal("Gagal memulai server:", err)
 	}
 }

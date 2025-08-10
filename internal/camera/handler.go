@@ -45,3 +45,21 @@ func (h *Handler) CreateCamera(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
+
+func (h *Handler) GetCameras(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	if !ok {
+		http.Error(w, "Gagal mengambil data pengguna dari token", http.StatusInternalServerError)
+		return
+	}
+	companyID, _ := claims["company_id"].(float64)
+
+	cameras, err := h.service.GetCamerasForCompany(int64(companyID))
+	if err != nil {
+		http.Error(w, "Gagal mengambil data kamera", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cameras)
+}
