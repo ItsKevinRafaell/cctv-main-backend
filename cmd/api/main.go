@@ -42,6 +42,17 @@ func main() {
 
 	mux.HandleFunc("/api/companies", companyHandler.CreateCompany)
 
+	mux.HandleFunc("/api/cameras/", authMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			cameraHandler.UpdateCamera(w, r)
+		case http.MethodDelete:
+			cameraHandler.DeleteCamera(w, r)
+		default:
+			http.Error(w, "Metode tidak diizinkan di rute ini", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	mux.HandleFunc("/api/cameras", authMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:

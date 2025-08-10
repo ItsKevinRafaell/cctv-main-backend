@@ -5,6 +5,8 @@ import (
 	"cctv-main-backend/pkg/auth"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -62,4 +64,43 @@ func (h *Handler) GetCameras(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(cameras)
+}
+
+func (h *Handler) UpdateCamera(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	id, _ := strconv.ParseInt(parts[len(parts)-1], 10, 64)
+
+	claims, _ := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	companyID, _ := claims["company_id"].(float64)
+
+	var camera domain.Camera
+	if err := json.NewDecoder(r.Body).Decode(&camera); err != nil {
+		http.Error(w, "Request body tidak valid", http.StatusBadRequest)
+		return
+	}
+
+	camera.ID = id
+	camera.CompanyID = int64(companyID)
+
+	if err := h.service.UpdateCamera(&camera); err != nil {
+		http.Error(w, "Gagal memperbarui kamera", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Kamera berhasil diperbarui."))
+}
+
+func (h *Handler) DeleteCamera(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	id, _ := strconv.ParseInt(parts[len(parts)-1], 10, 64)
+
+	claims, _ := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	companyID, _ := claims["company_id"].(float64)
+
+	if err := h.service.DeleteCamera(id, int64(companyID)); err != nil {
+		http.Error(w, "Gagal menghapus kamera", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Kamera berhasil dihapus."))
 }

@@ -3,11 +3,14 @@ package camera
 import (
 	"cctv-main-backend/internal/domain"
 	"database/sql"
+	"errors"
 )
 
 type Repository interface {
 	CreateCamera(camera *domain.Camera) (int64, error)
 	GetCamerasByCompanyID(companyID int64) ([]domain.Camera, error)
+	UpdateCamera(camera *domain.Camera) error
+	DeleteCamera(cameraID int64, companyID int64) error
 }
 
 type repository struct {
@@ -45,4 +48,44 @@ func (r *repository) GetCamerasByCompanyID(companyID int64) ([]domain.Camera, er
 		cameras = append(cameras, cam)
 	}
 	return cameras, nil
+}
+
+func (r *repository) UpdateCamera(camera *domain.Camera) error {
+	query := `UPDATE cameras SET name = $1, location = $2 WHERE id = $3 AND company_id = $4`
+
+	result, err := r.db.Exec(query, camera.Name, camera.Location, camera.ID, camera.CompanyID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("kamera tidak ditemukan atau bukan milik perusahaan anda")
+	}
+
+	return nil
+}
+
+func (r *repository) DeleteCamera(cameraID int64, companyID int64) error {
+	query := `DELETE FROM cameras WHERE id = $1 AND company_id = $2`
+
+	result, err := r.db.Exec(query, cameraID, companyID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("kamera tidak ditemukan atau bukan milik perusahaan anda")
+	}
+
+	return nil
 }
