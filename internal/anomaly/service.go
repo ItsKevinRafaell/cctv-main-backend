@@ -16,7 +16,6 @@ func NewService(repo Repository) Service {
 }
 
 func (s *service) SaveReport(report *domain.AnomalyReport) error {
-	// Di masa depan, logika bisnis kompleks bisa ditambahkan di sini
 	return s.repo.CreateReport(report)
 }
 

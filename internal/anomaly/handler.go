@@ -5,6 +5,7 @@ import (
 	"cctv-main-backend/pkg/auth"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -29,12 +30,21 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if report.CameraID == 0 {
+		http.Error(w, "camera_id wajib diisi", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("✅ Laporan Diterima dari Kamera ID: %d, Tipe: %s", report.CameraID, report.AnomalyType)
+
 	err := h.service.SaveReport(&report)
 	if err != nil {
+		log.Printf("❌ `Gagal memproses laporan: %v", err)
 		http.Error(w, "Gagal memproses laporan", http.StatusInternalServerError)
 		return
 	}
 
+	log.Println("   > Laporan berhasil disimpan.")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Laporan berhasil diterima dan disimpan."))
 }

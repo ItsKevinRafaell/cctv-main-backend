@@ -24,7 +24,6 @@ func (r *repository) CreateReport(report *domain.AnomalyReport) error {
 	_, err := r.db.Exec(query, report.CameraID, report.AnomalyType, report.Confidence, time.Now())
 	return err
 }
-
 func (r *repository) GetAllReportsByCompany(companyID int64) ([]domain.AnomalyReport, error) {
 	query := `
 		SELECT r.id, r.camera_id, r.anomaly_type, r.confidence, r.reported_at
