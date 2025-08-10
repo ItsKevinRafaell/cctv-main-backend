@@ -2,6 +2,7 @@ package main
 
 import (
 	"cctv-main-backend/internal/anomaly"
+	"cctv-main-backend/internal/camera"
 	"cctv-main-backend/internal/company"
 	"cctv-main-backend/internal/user"
 	"cctv-main-backend/pkg/database"
@@ -27,11 +28,17 @@ func main() {
 	companyService := company.NewService(companyRepo)
 	companyHandler := company.NewHandler(companyService)
 
+	cameraRepo := camera.NewRepository(db)
+	cameraService := camera.NewService(cameraRepo)
+	cameraHandler := camera.NewHandler(cameraService)
+
 	http.HandleFunc("/api/register", userHandler.Register)
 	http.HandleFunc("/api/login", userHandler.Login)
 
 	http.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
 	http.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
+
+	http.HandleFunc("/api/cameras", authMiddleware(cameraHandler.CreateCamera))
 
 	http.HandleFunc("/api/companies", companyHandler.CreateCompany)
 
