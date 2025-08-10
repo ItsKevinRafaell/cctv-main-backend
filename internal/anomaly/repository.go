@@ -8,7 +8,7 @@ import (
 
 type Repository interface {
 	CreateReport(report *domain.AnomalyReport) error
-	GetAllReports() ([]domain.AnomalyReport, error)
+	GetAllReportsByCompany(companyID int64) ([]domain.AnomalyReport, error)
 }
 
 type repository struct {
@@ -25,8 +25,15 @@ func (r *repository) CreateReport(report *domain.AnomalyReport) error {
 	return err
 }
 
-func (r *repository) GetAllReports() ([]domain.AnomalyReport, error) {
-	rows, err := r.db.Query("SELECT id, camera_id, anomaly_type, confidence, reported_at FROM anomaly_reports ORDER BY reported_at DESC")
+func (r *repository) GetAllReportsByCompany(companyID int64) ([]domain.AnomalyReport, error) {
+	query := `
+		SELECT r.id, r.camera_id, r.anomaly_type, r.confidence, r.reported_at
+		FROM anomaly_reports r
+		JOIN cameras c ON r.camera_id = c.id
+		WHERE c.company_id = $1
+		ORDER BY r.reported_at DESC`
+
+	rows, err := r.db.Query(query, companyID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +42,7 @@ func (r *repository) GetAllReports() ([]domain.AnomalyReport, error) {
 	var reports []domain.AnomalyReport
 	for rows.Next() {
 		var report domain.AnomalyReport
+		// Sesuaikan Scan karena kita tidak mengambil semua kolom dari JOIN
 		if err := rows.Scan(&report.ID, &report.CameraID, &report.AnomalyType, &report.Confidence, &report.ReportedAt); err != nil {
 			return nil, err
 		}

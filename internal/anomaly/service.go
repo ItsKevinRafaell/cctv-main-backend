@@ -4,7 +4,7 @@ import "cctv-main-backend/internal/domain"
 
 type Service interface {
 	SaveReport(report *domain.AnomalyReport) error
-	FetchAllReports() ([]domain.AnomalyReport, error)
+	FetchAllReportsByCompany(companyID int64) ([]domain.AnomalyReport, error)
 }
 
 type service struct {
@@ -20,6 +20,6 @@ func (s *service) SaveReport(report *domain.AnomalyReport) error {
 	return s.repo.CreateReport(report)
 }
 
-func (s *service) FetchAllReports() ([]domain.AnomalyReport, error) {
-	return s.repo.GetAllReports()
+func (s *service) FetchAllReportsByCompany(companyID int64) ([]domain.AnomalyReport, error) {
+	return s.repo.GetAllReportsByCompany(companyID)
 }
