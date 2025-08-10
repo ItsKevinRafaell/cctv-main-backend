@@ -40,7 +40,27 @@ func main() {
 	mux.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
 	mux.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
 
-	mux.HandleFunc("/api/companies", companyHandler.CreateCompany)
+	mux.HandleFunc("/api/companies", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			companyHandler.CreateCompany(w, r)
+		case http.MethodGet:
+			companyHandler.GetAllCompanies(w, r)
+		default:
+			http.Error(w, "Metode tidak diizinkan", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/companies/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			companyHandler.UpdateCompany(w, r)
+		case http.MethodDelete:
+			companyHandler.DeleteCompany(w, r)
+		default:
+			http.Error(w, "Metode tidak diizinkan", http.StatusMethodNotAllowed)
+		}
+	})
 
 	mux.HandleFunc("/api/cameras/", authMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
