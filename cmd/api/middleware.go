@@ -1,17 +1,13 @@
 package main
 
 import (
+	"cctv-main-backend/pkg/auth"
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-type ContextKey string
-
-const UserClaimsKey = ContextKey("userClaims")
 
 var jwtSecret = []byte("kunci-rahasia-yang-sangat-aman-dan-panjang")
 
@@ -19,13 +15,13 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Header Authorization tidak ditemukan", http.StatusUnauthorized)
+			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
-			http.Error(w, "Format token tidak valid", http.StatusUnauthorized)
+			http.Error(w, "Token format is invalid", http.StatusUnauthorized)
 			return
 		}
 
@@ -37,16 +33,15 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Token tidak valid", http.StatusUnauthorized)
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			fmt.Println("Claims in middleware:", claims)
-			ctx := context.WithValue(r.Context(), UserClaimsKey, claims)
+			ctx := context.WithValue(r.Context(), auth.UserClaimsKey, claims)
 			next(w, r.WithContext(ctx))
 		} else {
-			http.Error(w, "Token tidak valid", http.StatusUnauthorized)
+			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 		}
 	}
 }

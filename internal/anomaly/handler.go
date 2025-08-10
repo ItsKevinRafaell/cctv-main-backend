@@ -2,6 +2,7 @@ package anomaly
 
 import (
 	"cctv-main-backend/internal/domain"
+	"cctv-main-backend/pkg/auth"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -39,15 +40,14 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAllReports(w http.ResponseWriter, r *http.Request) {
-	// Retrieve claims from context using the same key
-	claims, ok := r.Context().Value(UserClaimsKey).(jwt.MapClaims)
-	if !ok {
+	claims, ok := r.Context().Value(auth.UserClaimsKey).(jwt.MapClaims)
+	if !ok || claims == nil {
 		http.Error(w, "Gagal mengambil data pengguna dari token", http.StatusUnauthorized)
 		fmt.Println("Failed to get claims from context.")
 		return
 	}
 
-	fmt.Println("Token claims:", claims)
+	fmt.Println("Claims in GetAllReports:", claims)
 
 	companyID, ok := claims["company_id"].(float64)
 	if !ok {
