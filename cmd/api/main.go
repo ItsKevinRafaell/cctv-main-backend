@@ -2,6 +2,7 @@ package main
 
 import (
 	"cctv-main-backend/internal/anomaly"
+	"cctv-main-backend/internal/company"
 	"cctv-main-backend/internal/user"
 	"cctv-main-backend/pkg/database"
 	"fmt"
@@ -14,20 +15,25 @@ func main() {
 	database.Migrate(db)
 	defer db.Close()
 
-	// Inisialisasi Departemen Anomali (Dependency Injection)
 	anomalyRepo := anomaly.NewRepository(db)
 	anomalyService := anomaly.NewService(anomalyRepo)
 	anomalyHandler := anomaly.NewHandler(anomalyService)
 
-	// Inisialisasi Departemen User (Dependency Injection)
 	userRepo := user.NewRepository(db)
 	userService := user.NewService(userRepo)
 	userHandler := user.NewHandler(userService)
 
+	companyRepo := company.NewRepository(db)
+	companyService := company.NewService(companyRepo)
+	companyHandler := company.NewHandler(companyService)
+
 	http.HandleFunc("/api/register", userHandler.Register)
 	http.HandleFunc("/api/login", userHandler.Login)
+
 	http.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
 	http.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
+
+	http.HandleFunc("/api/companies", companyHandler.CreateCompany)
 
 	port := "8080"
 	fmt.Printf("Server berjalan di http://localhost:%s\n", port)
