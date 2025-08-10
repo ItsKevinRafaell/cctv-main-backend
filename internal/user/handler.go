@@ -3,6 +3,7 @@ package user
 import (
 	"cctv-main-backend/internal/domain"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -39,12 +40,22 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// !!!!! INI BARIS DEBUGGING YANG PALING PENTING !!!!!
+	// Baris ini akan mencetak isi struct 'user' ke terminal Go.
+	log.Printf("DEBUG: Menerima data registrasi: %+v\n", user)
+
+	if user.Role == "" {
+		user.Role = "user"
+	}
+
 	err := h.service.Register(&user)
 	if err != nil {
-		http.Error(w, "Email sudah terdaftar", http.StatusConflict)
+		// Kita cetak juga error aslinya untuk melihat apa yang terjadi
+		log.Printf("ERROR: Gagal register service: %v\n", err)
+		http.Error(w, "Email sudah terdaftar atau terjadi kesalahan lain", http.StatusConflict)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("User berhasil didaftarkan."))
+	w.Write([]byte("User berhasil didaftarkan untuk perusahaan terkait."))
 }

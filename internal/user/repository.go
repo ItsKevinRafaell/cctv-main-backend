@@ -31,7 +31,7 @@ func (r *repository) GetUserByEmail(email string) (*domain.User, error) {
 }
 
 func (r *repository) CreateUser(user *domain.User) error {
-	query := `INSERT INTO users (email, password_hash) VALUES ($1, $2)`
-	_, err := r.db.Exec(query, user.Email, user.PasswordHash)
+	query := `INSERT INTO users (email, password_hash, company_id, role) VALUES ($1, $2, $3, $4)`
+	_, err := r.db.Exec(query, user.Email, user.PasswordHash, user.CompanyID, user.Role)
 	return err
 }
