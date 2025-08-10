@@ -1,11 +1,3 @@
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODQ4MSwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.gXS1PKtuUmQ0nFC9NQ_OqJKC0rdV81Ar5EB3w9W-E3E
 
-curl http://localhost:8080/api/companies
-
-# Ganti angka 2 dengan ID perusahaan yang ingin diubah
-curl -X PUT -H "Content-Type: application/json" -d "{\"name\":\"PT Jaya Selalu\"}" http://localhost:8080/api/companies/1
-
-# Ganti angka 2 dengan ID perusahaan yang ingin dihapus
-curl -X DELETE http://localhost:8080/api/companies/2
-
 feat:implement full CRUD for company management

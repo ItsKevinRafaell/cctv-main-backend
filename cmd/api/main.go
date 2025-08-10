@@ -36,6 +36,17 @@ func main() {
 
 	mux.HandleFunc("/api/register", userHandler.Register)
 	mux.HandleFunc("/api/login", userHandler.Login)
+	mux.HandleFunc("/api/users", authMiddleware(userHandler.GetAllUsers))
+	mux.HandleFunc("/api/users/", authMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			userHandler.UpdateUserRole(w, r)
+		case http.MethodDelete:
+			userHandler.DeleteUser(w, r)
+		default:
+			http.Error(w, "Metode tidak diizinkan", http.StatusMethodNotAllowed)
+		}
+	}))
 
 	mux.HandleFunc("/api/report-anomaly", anomalyHandler.CreateReport)
 	mux.HandleFunc("/api/anomalies", authMiddleware(anomalyHandler.GetAllReports))
