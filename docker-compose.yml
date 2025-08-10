@@ -1,4 +1,16 @@
 services:
+  # Layanan baru untuk aplikasi Go kita
+  api:
+    build: . # Perintahkan Docker untuk membangun dari Dockerfile di direktori ini
+    ports:
+      - "8080:8080" # Map port 8080 di laptop kita ke port 8080 di kontainer
+    depends_on:
+      - db # Pastikan kontainer 'db' berjalan terlebih dahulu sebelum 'api'
+    environment:
+      # Kita bisa taruh variabel konfigurasi di sini nanti
+      - DB_HOST=db 
+
+  # Layanan database yang sudah ada
   db:
     image: postgres:15-alpine
     restart: always
@@ -7,7 +19,7 @@ services:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=cctv_db
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 

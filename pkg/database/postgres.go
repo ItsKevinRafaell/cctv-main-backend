@@ -8,7 +8,7 @@ import (
 )
 
 func NewConnection() *sql.DB {
-	connStr := "host=127.0.0.1 port=5432 user=admin password=secret dbname=cctv_db sslmode=disable"
+	connStr := "host=db port=5432 user=admin password=secret dbname=cctv_db sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Gagal terhubung ke database: %v", err)
