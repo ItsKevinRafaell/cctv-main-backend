@@ -1,3 +1,4 @@
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA2ODQ4MSwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoyfQ.gXS1PKtuUmQ0nFC9NQ_OqJKC0rdV81Ar5EB3w9W-E3E
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA5MzIyOCwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoxfQ.W97x_iJbJ0BMhbyvcGjQLVDL1g3GDEeke5p_VV65iqE
 
-feat:implement full CRUD for company management
+# Ganti TOKEN_BUDI_DISINI dengan token yang Anda salin
+curl -X POST -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoxLCJlbWFpbCI6ImJ1ZGlAamF5YWFiYWRpLmNvbSIsImV4cCI6MTc1NTA5MzIyOCwicm9sZSI6ImNvbXBhbnlfYWRtaW4iLCJ1c2VyX2lkIjoxfQ.W97x_iJbJ0BMhbyvcGjQLVDL1g3GDEeke5p_VV65iqE" -H "Content-Type: application/json" -d "{\"name\":\"Kamera Simulasi AI\",\"location\":\"Ruang Server\"}" http://localhost:8080/api/cameras
