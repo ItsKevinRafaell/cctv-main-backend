@@ -6,6 +6,7 @@ import (
 	"cctv-main-backend/internal/company"
 	"cctv-main-backend/internal/user"
 	"cctv-main-backend/pkg/database"
+	"cctv-main-backend/pkg/notifier"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,10 +17,11 @@ func main() {
 	database.Migrate(db)
 	defer db.Close()
 
+	logNotifier := notifier.NewLogNotifier()
 	mux := http.NewServeMux()
 
 	anomalyRepo := anomaly.NewRepository(db)
-	anomalyService := anomaly.NewService(anomalyRepo)
+	anomalyService := anomaly.NewService(anomalyRepo, logNotifier)
 	anomalyHandler := anomaly.NewHandler(anomalyService)
 
 	userRepo := user.NewRepository(db)
