@@ -20,13 +20,15 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *repository) CreateReport(report *domain.AnomalyReport) error {
-	query := `INSERT INTO anomaly_reports (camera_id, anomaly_type, confidence, reported_at) VALUES ($1, $2, $3, $4)`
-	_, err := r.db.Exec(query, report.CameraID, report.AnomalyType, report.Confidence, time.Now())
+	query := `INSERT INTO anomaly_reports (camera_id, anomaly_type, confidence, video_clip_url, reported_at) VALUES ($1, $2, $3, $4, $5)`
+	_, err := r.db.Exec(query, report.CameraID, report.AnomalyType, report.Confidence, report.VideoClipURL, time.Now())
 	return err
 }
+
 func (r *repository) GetAllReportsByCompany(companyID int64) ([]domain.AnomalyReport, error) {
+	// Query sekarang mengambil juga video_clip_url
 	query := `
-		SELECT r.id, r.camera_id, r.anomaly_type, r.confidence, r.reported_at
+		SELECT r.id, r.camera_id, r.anomaly_type, r.confidence, r.video_clip_url, r.reported_at
 		FROM anomaly_reports r
 		JOIN cameras c ON r.camera_id = c.id
 		WHERE c.company_id = $1
@@ -41,8 +43,8 @@ func (r *repository) GetAllReportsByCompany(companyID int64) ([]domain.AnomalyRe
 	var reports []domain.AnomalyReport
 	for rows.Next() {
 		var report domain.AnomalyReport
-		// Sesuaikan Scan karena kita tidak mengambil semua kolom dari JOIN
-		if err := rows.Scan(&report.ID, &report.CameraID, &report.AnomalyType, &report.Confidence, &report.ReportedAt); err != nil {
+		// Sesuaikan Scan untuk membaca kolom baru
+		if err := rows.Scan(&report.ID, &report.CameraID, &report.AnomalyType, &report.Confidence, &report.VideoClipURL, &report.ReportedAt); err != nil {
 			return nil, err
 		}
 		reports = append(reports, report)
